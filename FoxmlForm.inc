@@ -157,8 +157,8 @@ class FoxmlDocument extends DOMDocument {
       return;
 
     list($label, $mime_type, $file_url) = $this->getFileAttributes($this->ingestFileLocation);
-    $datastream = $this->createDatastreamElement('OBJ', 'A', 'M');
-    $version = $this->createDatastreamVersionElement('OBJ.0', $label, $mime_type);
+    $datastream = $this->createDatastreamElement($label, 'A', 'M');
+    $version = $this->createDatastreamVersionElement("$label.0", $label, $mime_type);
     $content = $this->createDatastreamContentLocationElement('URL', $file_url);
     $this->root->appendChild($datastream)->appendChild($version)->appendChild($content);
 
