@@ -237,10 +237,10 @@ class IngestFormBuilder implements FormBuilderInterface {
     $file = isset($form_values['ingest-file-location']) ? $form_values['ingest-file-location'] : '';
     $form['#attributes']['enctype'] = 'multipart/form-data';
     $form['indicator']['ingest-file-location'] = array(
-      '#type' => 'file',
-      '#title' => t('Upload Document'),
+      '#type' => 'multifile',
+      '#title' => t('Upload Files'),
       '#size' => 48,
-      '#description' => t('Full text'),
+      '#description' => t('Select files to be added the the object as datastreams.'),
     );
     $form_generator = FormGenerator::CreateFromModel($this->contentModelPid, $this->contentModelDsid);
     $form[FORM_ROOT] = $form_generator->generate($this->formName); // TODO get from user .
@@ -250,7 +250,12 @@ class IngestFormBuilder implements FormBuilderInterface {
       '#prefix' => t('Please be patient. Once you click next there may be a number of files created. ' .
           'Depending on your content model this could take a few minutes to process.<br />')
     );
-    return $form;
+    // make sure the form exists before returning it
+    if($form[FORM_ROOT] == FALSE) {
+      return FALSE;
+    } else {
+      return $form;
+    }
   }
 
   /**
@@ -285,35 +290,44 @@ class IngestFormBuilder implements FormBuilderInterface {
    *   Drupal form to be validated.
    */
   private function validateFormTwo(&$form) {
-    $validators = array();
     $form_values = &$this->formState['values'];
-    if (!empty($_FILES['files']['name']['ingest-file-location'])) {
-      $file_object = file_save_upload('ingest-file-location', $validators);
-      file_move($file_object->filepath, 0, 'FILE_EXISTS_RENAME');
-      $form_values['ingest-file-location'] = $file_object->filepath;
-    }
-    if (file_exists($form_values['ingest-file-location'])) {
+    if (!empty($_FILES['ingest-file-location'])) {
+      module_load_include('inc', 'islandora_form_builder_elements', 'includes/MultiFile');
       module_load_include('inc', 'fedora_repository', 'ContentModel');
       module_load_include('inc', 'fedora_repository', 'MimeClass');
-      $file = $form_values['ingest-file-location'];
-      $content_model = ContentModel::loadFromModel($this->contentModelPid, $this->contentModelDsid);
-      if ($content_model !== FALSE) {
-        $allowed_mime_types = $content_model->getMimetypes();
-        $mime = new MimeClass();
-        $mime_type = $mime->getType($file);
-        if (!empty($file)) {
+      
+      $files = multifile_array_mangler($_FILES, 'ingest-file-location');
+      $form_values['ingest-file-location'] = array();
+      $filetmp = $_FILES;
+      foreach( $files as $key => $file ) {
+        $_FILES = $file;
+        $file_object = file_save_upload('ingest-file-location'.$key);
+        file_move($file_object->filepath, 0, 'FILE_EXISTS_RENAME');
+        $form_values['ingest-file-location'][] = $file_object->filepath;
+      }
+      $_FILES = $filetmp;
+
+      foreach($form_values['ingest-file-location'] as $file) {
+        $content_model = ContentModel::loadFromModel($this->contentModelPid, $this->contentModelDsid);
+        if ($content_model !== FALSE) {
+          $allowed_mime_types = $content_model->getMimetypes();
+          $mime = new MimeClass();
+          $mime_type = $mime->getType($file);
           if (!in_array($mime_type, $allowed_mime_types)) {
-            $error = t("The uploaded file\'s mimetype ($mime_type) is not associated with this Content Model. The allowed types are " .
-                    implode(' ', $allowed_mime_types));
+            $error = t("The uploaded file's mimetype ($mime_type) is not " .
+                "associated with this Content Model. The allowed types are " . 
+                implode(' ', $allowed_mime_types));
             form_set_error('ingest-file-location', $error);
-            file_delete($file);
+            foreach($form_values['ingest-file-location'] as $file)
+              file_delete($file);
             return;
           }
           else if (!$content_model->execIngestRules($file, $mime_type)) {
             drupal_set_message(t('Error following Content Model Rules'), 'error');
-            foreach (ContentModel::$errors as $error) {
+            foreach (ContentModel::$errors as $error) 
               drupal_set_message($error, 'error');
-            }
+            foreach($form_values['ingest-file-location'] as $file)
+              file_delete($file);  
           }
         }
       }

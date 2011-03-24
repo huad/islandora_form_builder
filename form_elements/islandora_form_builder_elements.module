@@ -49,6 +49,11 @@ function islandora_form_builder_elements_elements() {
     '#input' => TRUE,
     '#process' => array('islandora_form_builder_elements_process_tabpanel'),
   );
+  $type['multifile'] = array(
+    '#input' => TRUE,
+    '#maxnumber' => '',
+    '#filetypes' => '',
+  );
   return $type;
 }
 
@@ -64,6 +69,7 @@ function islandora_form_builder_elements_theme() {
     'set' => array('arguments' => array('element'), 'file' => 'includes/Set.inc'),
     'tabpanel' => array('arguments' => array('element'), 'file' => 'includes/TabPanel.inc'),
     'tabpanel_items' => array('arguments' => array('form' => NULL, 'element'), 'file' => 'includes/TabPanel.inc'),
+    'multifile' => array('arguments' => array('element'), 'file' => 'includes/MultiFile.inc'),
   );
 }
 
