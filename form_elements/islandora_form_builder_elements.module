@@ -47,6 +47,8 @@ function islandora_form_builder_elements_elements() {
   );
   $type['tabpanel'] = array(
     '#input' => TRUE,
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
     '#process' => array('islandora_form_builder_elements_process_tabpanel'),
   );
   $type['multifile'] = array(
