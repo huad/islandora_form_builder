@@ -120,7 +120,7 @@ class ModsIngestFormBuilder implements FormBuilderInterface {
       '#type' => 'file',
       '#title' => t('Upload Document'),
       '#size' => 48,
-      '#description' => t('Full text'),
+      '#description' => t('Select file to be added the the object.'),
     );
     $form_generator = FormGenerator::CreateFromModel($this->contentModelPid, $this->contentModelDsid);
     $form[FORM_ROOT] = $form_generator->generate($this->formName); // TODO get from user .
@@ -145,12 +145,12 @@ class ModsIngestFormBuilder implements FormBuilderInterface {
     if (!empty($_FILES['files']['name']['ingest-file-location'])) {
       $file_object = file_save_upload('ingest-file-location', $validators);
       file_move($file_object->filepath, 0, 'FILE_EXISTS_RENAME');
-      $form_values['ingest-file-location'] = $file_object->filepath;
+      $form_values['ingest-file-location'] = array('OBJ' => $file_object->filepath);
     }
-    if (file_exists($form_values['ingest-file-location'])) {
+    if (file_exists($form_values['ingest-file-location']['OBJ'])) {
       module_load_include('inc', 'fedora_repository', 'ContentModel');
       module_load_include('inc', 'fedora_repository', 'MimeClass');
-      $file = $form_values['ingest-file-location'];
+      $file = $form_values['ingest-file-location']['OBJ'];
       $content_model = ContentModel::loadFromModel($this->contentModelPid, $this->contentModelDsid);
       if ($content_model !== FALSE) {
         $allowed_mime_types = $content_model->getMimetypes();

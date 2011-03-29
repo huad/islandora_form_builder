@@ -153,13 +153,15 @@ class FoxmlDocument extends DOMDocument {
   }
 
   private function createIngestFileDatastreams() {
+    module_load_include('inc', 'fedora_repository', 'api/fedora_util');
     if (empty($this->ingestFileLocations))
       return;
 
-    foreach($this->ingestFileLocations as $file) {
+    foreach($this->ingestFileLocations as $dsid => $file) {
+      $dsid = fixDsid($dsid);
       list($label, $mime_type, $file_url) = $this->getFileAttributes($file);
-      $datastream = $this->createDatastreamElement($label, 'A', 'M');
-      $version = $this->createDatastreamVersionElement($label.'.0', $label, $mime_type);
+      $datastream = $this->createDatastreamElement($dsid, 'A', 'M');
+      $version = $this->createDatastreamVersionElement($dsid.'.0', $label, $mime_type);
       $content = $this->createDatastreamContentLocationElement('URL', $file_url);
       $this->root->appendChild($datastream)->appendChild($version)->appendChild($content);
     }
@@ -168,7 +170,6 @@ class FoxmlDocument extends DOMDocument {
   private function getFileAttributes($file) {
     global $base_url;
     module_load_include('inc', 'fedora_repository', 'MimeClass');
-    module_load_include('inc', 'fedora_repository', 'api/fedora_util');
     $mime = new MimeClass();
     $mime_type = $mime->getType($file);
     $parts = explode('/', $file);
@@ -180,7 +181,6 @@ class FoxmlDocument extends DOMDocument {
     $beginIndex = strrpos($file_url, '/');
     $dtitle = substr($file_url, $beginIndex + 1);
     $dtitle = urldecode($dtitle);
-    $dtitle = fixDsid($dtitle);
     return array($dtitle, $mime_type, $file_url);
   }
 
