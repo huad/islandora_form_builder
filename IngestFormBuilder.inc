@@ -252,6 +252,7 @@ class IngestFormBuilder implements FormBuilderInterface {
    * Changes the form to page to and rebuilds.
    */
   private function validateFormOne(&$form) {
+    module_load_include('inc', 'fedora_repository', 'ContentModel');
     $form_values = &$this->formState['values'];
     $this->storage['content_model_pid'] = ContentModel::getPidFromIdentifier($form_values['models']);
     $this->storage['content_model_dsid'] = ContentModel::getDSIDFromIdentifier($form_values['models']);
@@ -261,15 +262,13 @@ class IngestFormBuilder implements FormBuilderInterface {
   }
 
   /**
-   * Validate the second page of the ingest form. This should really be refactored out such that a the user
-   * of this class can specifiy thier own validator.
    *
    * @param array $form
    *   Drupal form to be validated.
    */
   private function validateFormTwo(&$form) {
-    $form = &$this->createIngestFormClass();
-    return $form->validateForm($form);
+    $class = &$this->createIngestFormClass();
+    return $class->validateForm($form);
   }
 
   /**
@@ -278,11 +277,12 @@ class IngestFormBuilder implements FormBuilderInterface {
    *  $form
    */
   public function submitForm(&$form) {
-    $form = &$this->createIngestFormClass();
-    return $form->submitForm($form);
+    $class = &$this->createIngestFormClass();
+    return $class->submitForm($form);
   }
 
   private function &createIngestFormClass() {
+    module_load_include('inc', 'fedora_repository', 'ContentModel');
     $content_model = ContentModel::loadFromModel($this->contentModelPid, $this->contentModelDsid);
     $form_element = $content_model->getForm($this->formName);
     $module = $form_element->getAttribute('ingest_module');
