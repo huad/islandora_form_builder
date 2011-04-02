@@ -71,7 +71,7 @@ class EditFormBuilder implements FormBuilderInterface {
    */
   public function createForm() {
     $builder = &$this->createEditFormBuilder();
-    return $builder->createForm($form);
+    return $builder->createForm();
   }
 
   /**
