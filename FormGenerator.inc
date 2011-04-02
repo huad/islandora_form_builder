@@ -168,6 +168,36 @@ class FormGenerator {
   }
 
   /**
+   * Creates the collapsed form control turning text into boolean.
+   *
+   * @param DOMElement $form_element
+   *   A XML definition for the form control.
+   *
+   * @return array
+   *   The drupal from control.
+   */
+  private function createCollapsedFormControl(&$form_element) {
+    $name = $form_element->tagName;
+    $boolean = (strtolower(trim($form_element->textContent)) === 'true') ? TRUE : FALSE;
+    return array("#$name", $boolean);
+  }
+
+  /**
+   * Creates the collapsible form control turning text into boolean.
+   *
+   * @param DOMElement $form_element
+   *   A XML definition for the form control.
+   *
+   * @return array
+   *   The drupal from control.
+   */
+  private function createCollapsibleFormControl(&$form_element) {
+    $name = $form_element->tagName;
+    $boolean = (strtolower(trim($form_element->textContent)) === 'true') ? TRUE : FALSE;
+    return array("#$name", $boolean);
+  }
+
+  /**
    * Creates a Content Form Control.
    *
    * @param DOMElement $form_element

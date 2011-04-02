@@ -29,7 +29,7 @@ class FoxmlDocument extends DOMDocument {
   protected $dsid;
   protected $collectionPid;
   protected $contentModelPid;
-  protected $ingestFileLocation;
+  protected $ingestFileLocations;
   protected $label;
   protected $user;
   protected $document;
@@ -47,7 +47,7 @@ class FoxmlDocument extends DOMDocument {
    * @param <type> $ingest_file_location
    * @param <type> $document 
    */
-  public function __construct($label, $pid, $dsid, $content_model_pid, $collection_pid, $relationship, $ingest_file_location, $document, $transform) {
+  public function __construct($label, $pid, $dsid, $content_model_pid, $collection_pid, $relationship, $ingest_file_locations, $document, $transform) {
     global $user;
     parent::__construct("1.0", "UTF-8"); // DomDocument
     $this->formatOutput = TRUE;
@@ -59,7 +59,7 @@ class FoxmlDocument extends DOMDocument {
     $this->contentModelPid = $content_model_pid;
     $this->collectionPid = $collection_pid;
     $this->relationship = isset($relationship) ? $relationship : 'isMemberOfCollection';
-    $this->ingestFileLocation = $ingest_file_location;
+    $this->ingestFileLocations = $ingest_file_locations;
     $this->document = $document;
     $this->transform = $transform;
     $this->root = $this->createRootElement();
@@ -153,29 +153,17 @@ class FoxmlDocument extends DOMDocument {
   }
 
   private function createIngestFileDatastreams() {
-    if (empty($this->ingestFileLocation))
+    module_load_include('inc', 'fedora_repository', 'api/fedora_util');
+    if (empty($this->ingestFileLocations))
       return;
 
-    list($label, $mime_type, $file_url) = $this->getFileAttributes($this->ingestFileLocation);
-    $datastream = $this->createDatastreamElement($label, 'A', 'M');
-    $version = $this->createDatastreamVersionElement("$label.0", $label, $mime_type);
-    $content = $this->createDatastreamContentLocationElement('URL', $file_url);
-    $this->root->appendChild($datastream)->appendChild($version)->appendChild($content);
-
-    if (!empty($_SESSION['fedora_ingest_files'])) {
-      foreach ($_SESSION['fedora_ingest_files'] as $dsid => $created_file) {
-        if (!empty($this->ingestFileLocation)) {
-          $found = strstr($created_file, $this->ingestFileLocation);
-          if ($found !== FALSE) {
-            $created_file = $found;
-          }
-        }
-        list($label, $mime_type, $file_url) = $this->getFileAttributes($created_file);
-        $datastream = $this->createDatastreamElement($dsid, 'A', 'M');
-        $version = $this->createDatastreamVersionElement("$dsid.0", $label, $mime_type);
-        $content = $this->createDatastreamContentLocationElement('URL', $file_url);
-        $this->root->appendChild($datastream)->appendChild($version)->appendChild($content);
-      }
+    foreach($this->ingestFileLocations as $dsid => $file) {
+      $dsid = fixDsid($dsid);
+      list($label, $mime_type, $file_url) = $this->getFileAttributes($file);
+      $datastream = $this->createDatastreamElement($dsid, 'A', 'M');
+      $version = $this->createDatastreamVersionElement($dsid.'.0', $label, $mime_type);
+      $content = $this->createDatastreamContentLocationElement('URL', $file_url);
+      $this->root->appendChild($datastream)->appendChild($version)->appendChild($content);
     }
   }
 
@@ -396,15 +384,14 @@ class FoxmlDocument extends DOMDocument {
         drupal_set_message(t("Item !pid created successfully.", array('!pid' => l($object->pid, 'fedora/repository/' . $object->pid))), "status");
         $ret = TRUE;
       }
-      if (!empty($_SESSION['fedora_ingest_files'])) {
-        foreach ($_SESSION['fedora_ingest_files'] as $dsid => $created_file) {
-          file_delete($created_file);
-        }
-      }
-      file_delete($this->ingestFileLocation);
+      foreach( $this->ingestFileLocations as $file )
+        file_delete($file);
     } catch (exception $exception) {
       drupal_set_message(t('Error ingesting object: !e', array('!e' => $exception->getMessage())), 'error');
       watchdog(t("Fedora_Repository"), t("Error ingesting object: !e", array('!e' => $exception->getMessage())), NULL, WATCHDOG_ERROR);
+      // TODO is this necessary?
+      foreach( $this->ingestFileLocations as $file )
+        file_delete($file);
     }
     return $ret;
   }
