@@ -162,7 +162,6 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
       foreach( $files as $key => $file ) {
         $_FILES = $file;
         $file_object = file_save_upload('ingest-file-location'.$key);
-        dpm($file_object->filepath);
         file_move($file_object->filepath, 0, 'FILE_EXISTS_RENAME');
         $form_values['ingest-file-location'][$file_object->filename] = $file_object->filepath;
       }
