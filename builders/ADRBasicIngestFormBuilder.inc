@@ -122,6 +122,11 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
       '#size' => 48,
       '#description' => t('Select files to be added the the object as datastreams.'),
     );
+    //$form['indicator']['active-toggle'] = array(
+    //  '#type' => 'checkbox',
+    //  '#title' => t('Active'),
+    //  '#default_value' => TRUE,
+    //);
     $form_generator = FormGenerator::CreateFromModel($this->contentModelPid, $this->contentModelDsid);
     $form[FORM_ROOT] = $form_generator->generate($this->formName); // TODO get from user .
     $form['submit'] = array(
@@ -157,6 +162,7 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
       foreach( $files as $key => $file ) {
         $_FILES = $file;
         $file_object = file_save_upload('ingest-file-location'.$key);
+        dpm($file_object->filepath);
         file_move($file_object->filepath, 0, 'FILE_EXISTS_RENAME');
         $form_values['ingest-file-location'][$file_object->filename] = $file_object->filepath;
       }
@@ -198,7 +204,6 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
    */
   public function submitForm(&$form) {
     module_load_include('inc', 'fedora_repository', 'CollectionPolicy');
-    dvm($form);
     $error = TRUE;
     $should_redirect = TRUE;
     $collection_policy = CollectionPolicy::loadFromCollection($this->collectionPid);
@@ -209,11 +214,10 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
       if ($content_model !== FALSE) {
         module_load_include('inc', 'islandora_form_builder', 'FoxmlForm');
         list($class, $dsid) = $this->loadDocumentClass($content_model);
-        $label = "";
+        $label = $form['#post']['form_builder'][0]; // use mods title as label
         $pid = $collection_policy->getNextPid($this->contentModelDsid);
         $ingest_file_location = isset($this->formState['values']['ingest-file-location']) ? $this->formState['values']['ingest-file-location'] : NULL;
         $document = new $class($form, $this->formState);
-        dvm($document);
         $transform = drupal_get_path('module', 'islandora_form_builder') . '/transforms/mods_to_dc.xsl';
         $foxml = new FoxmlDocument($label, $pid, $dsid, $this->contentModelPid, $this->collectionPid, $relationship, $ingest_file_location, $document, $transform);
         $error = $foxml->ingest();

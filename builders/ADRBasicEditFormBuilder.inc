@@ -13,7 +13,7 @@ module_load_include('inc', 'fedora_repository', 'api/fedora_item');
 /**
  *
  */
-class ModsEditFormBuilder implements FormBuilderInterface {
+class ADRBasicEditFormBuilder implements FormBuilderInterface {
 
   /**
    * Drupal persistance form storage, specifically the index STORAGE_KEY where all
@@ -122,6 +122,10 @@ class ModsEditFormBuilder implements FormBuilderInterface {
   public function submitForm(&$form) {
     global $base_url;
     module_load_include('inc', 'fedora_repository', 'ContentModel');
+    module_load_include('inc', 'fedora_repository', 'api/fedora_item');
+
+    $object = new Fedora_Item($this->pid);
+    $object->modify_object($form['#post']['form_builder'][0]); // set label
     $content_model = ContentModel::loadFromObject($this->pid);
     list($class) = $this->loadDocumentClass($content_model);
     $document = new $class($form, $this->formState);
