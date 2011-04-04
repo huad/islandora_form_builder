@@ -34,6 +34,7 @@ class FoxmlDocument extends DOMDocument {
   protected $user;
   protected $document;
   protected $transform;
+  protected $state;
 
   /**
    *
@@ -47,7 +48,7 @@ class FoxmlDocument extends DOMDocument {
    * @param <type> $ingest_file_location
    * @param <type> $document 
    */
-  public function __construct($label, $pid, $dsid, $content_model_pid, $collection_pid, $relationship, $ingest_file_locations, $document, $transform) {
+  public function __construct($label, $pid, $dsid, $content_model_pid, $collection_pid, $relationship, $ingest_file_locations, $document, $transform, $state = 'A' ) {
     global $user;
     parent::__construct("1.0", "UTF-8"); // DomDocument
     $this->formatOutput = TRUE;
@@ -56,6 +57,7 @@ class FoxmlDocument extends DOMDocument {
     $this->user = $user->name;
     $this->pid = $pid;
     $this->dsid = $dsid;
+    $this->state = $state;
     $this->contentModelPid = $content_model_pid;
     $this->collectionPid = $collection_pid;
     $this->relationship = isset($relationship) ? $relationship : 'isMemberOfCollection';
@@ -105,7 +107,7 @@ class FoxmlDocument extends DOMDocument {
 
     $property = $this->createElementNS(self::foxml, 'foxml:property');
     $property->setAttribute('NAME', 'info:fedora/fedora-system:def/model#state');
-    $property->setAttribute('VALUE', 'A');
+    $property->setAttribute('VALUE', $this->state);
     $object_properties->appendChild($property);
 
     $property = $this->createElementNS(self::foxml, 'foxml:property');
