@@ -122,11 +122,11 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
       '#size' => 48,
       '#description' => t('Select files to be added the the object as datastreams.'),
     );
-    //$form['indicator']['active-toggle'] = array(
-    //  '#type' => 'checkbox',
-    //  '#title' => t('Active'),
-    //  '#default_value' => TRUE,
-    //);
+    $form['active-toggle'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Active'),
+      '#default_value' => TRUE,
+    );
     $form_generator = FormGenerator::CreateFromModel($this->contentModelPid, $this->contentModelDsid);
     $form[FORM_ROOT] = $form_generator->generate($this->formName); // TODO get from user .
     $form['submit'] = array(
@@ -214,11 +214,16 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
         module_load_include('inc', 'islandora_form_builder', 'FoxmlForm');
         list($class, $dsid) = $this->loadDocumentClass($content_model);
         $label = $form['#post']['form_builder'][0]; // use mods title as label
+        if($form['#values']['active-toggle'] == TRUE)
+          $state = 'A';
+        else
+          $state = 'I';
+
         $pid = $collection_policy->getNextPid($this->contentModelDsid);
         $ingest_file_location = isset($this->formState['values']['ingest-file-location']) ? $this->formState['values']['ingest-file-location'] : NULL;
         $document = new $class($form, $this->formState);
         $transform = drupal_get_path('module', 'islandora_form_builder') . '/transforms/mods_to_dc.xsl';
-        $foxml = new FoxmlDocument($label, $pid, $dsid, $this->contentModelPid, $this->collectionPid, $relationship, $ingest_file_location, $document, $transform);
+        $foxml = new FoxmlDocument($label, $pid, $dsid, $this->contentModelPid, $this->collectionPid, $relationship, $ingest_file_location, $document, $transform, $state);
         $error = $foxml->ingest();
         $_SESSION['fedora_ingest_files'] = ''; //empty this variable
         $this->formState['storage'] = NULL;
