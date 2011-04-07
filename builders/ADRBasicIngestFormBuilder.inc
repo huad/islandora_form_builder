@@ -214,7 +214,7 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
         module_load_include('inc', 'islandora_form_builder', 'FoxmlForm');
         list($class, $dsid) = $this->loadDocumentClass($content_model);
         $label = $form['#post']['form_builder'][0]; // use mods title as label
-        if($form['#values']['active-toggle'] == TRUE)
+        if($form['#post']['active-toggle'] == TRUE)
           $state = 'A';
         else
           $state = 'I';
