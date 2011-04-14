@@ -32,12 +32,12 @@ class TabPanel {
     $path = drupal_get_path('module', 'islandora_form_builder_elements');
     drupal_add_js($path . '/js/jquery-ui-1.8.7.custom.min.js');
     drupal_add_js($path . '/js/tabpanel_ahah.js');
-    drupal_add_css($path . '/css/ui-lightness/jquery-ui-1.8.7.custom.css');
+    drupal_add_css($path . '/css/custom-theme/jquery-ui-1.8.11.custom.css');
     $classes = 'action-load-tabpanel';
-    if($element['#collapsible']) {
+    if ($element['#collapsible']) {
       $classes .= ' property-collapsible-tabpanel';
     }
-    if($element['#collapsed']) {
+    if ($element['#collapsed']) {
       $classes .= ' property-collapsed-tabpanel';
     }
     $id = t(implode('-', $element['#array_parents']));
@@ -47,17 +47,23 @@ class TabPanel {
   public function themeEachTab(&$form) {
     $name = $form['#name'];
     $title = $form['#title'];
-    $output = $this->themeTabHeader($form, $name, $title);
+    $collapsible = $form['#collapsible'];
+    $collapsed = $form['#collapsed'];
+    $output = $this->themeTabHeader($form, $name, $title, $collapsible, $collapsed);
     $output .= $this->themeTabContent($form, $name, $title);
     return $output;
   }
 
-  private function themeTabHeader(&$form, $name, $title) {
+  private function themeTabHeader(&$form, $name, $title, $collapsible, $collapsed) {
     $output = '<ul>';
     $output .= '<li>';
-    $output .= "<a href='#$name-0'>$title</a><span id='add-$name' class='ui-icon ui-icon-circle-plus' style='float: left; margin: 0.4em 0.2em 0 0; cursor: pointer;'>";
-    $output .= $form[0]["add-tab"]['#id'];
-    $output .= '</span>';
+    $output .= "<span style='float:left; vertical-align: middle; text-align: center;'><a href='#$name-0'>$title</a></span>";
+    if ($collapsible) {
+      $icon = ($collapsed)? 'ui-icon-circle-triangle-s': 'ui-icon-circle-triangle-e';
+      $output .= "<span class='ui-icon $icon' style='float: right; vertical-align: middle; margin: 0.5em 0.3em; cursor: pointer;'>";
+      $output .= $name;
+      $output .= '</span>';
+    }
     $output .= '</li>';
     foreach ($form as $key => $panel) {
       if (is_numeric($key) && $key > 0) {
@@ -89,7 +95,7 @@ class TabPanel {
     $form['#tree'] = TRUE;
     $wrapper = $form['#id'] . '-wrapper';
     $this->wrap($form, $wrapper);
-    $this->addThemeInfoToContent($form['content'], $form['#title'], $form['#id']);
+    $this->addThemeInfoToContent($form['content'], $form);
     $path = $form['#parents'];
     array_walk($path, array($this, 'stringifyPath'));
     $path = implode('', $path);
@@ -118,10 +124,12 @@ class TabPanel {
     $form['#suffix'] = '</div>';
   }
 
-  private function addThemeInfoToContent(&$content, $title, $id) {
-    $content['#title'] = $title;
+  private function addThemeInfoToContent(&$content, $form) {
+    $content['#title'] = $form['#title'];
     $content['#theme'] = 'tabpanel_items';
-    $content['#name'] = $id;
+    $content['#name'] = $form['#id'];
+    $content['#collapsible'] = $form['#collapsible'];
+    $content['#collapsed'] = $form['#collapsed'];
   }
 
   private function createAddTabButton(&$content, $path, $wrapper) {
