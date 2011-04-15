@@ -57,13 +57,13 @@ class TabPanel {
   private function themeTabHeader(&$form, $name, $title, $collapsible, $collapsed) {
     $output = '<ul>';
     $output .= '<li>';
-    $output .= "<span style='float:left; vertical-align: middle; text-align: center;'><a href='#$name-0'>$title</a></span>";
+    $output .= "<a href='#$name-0'>";
+    $output .= "<span style='float:left; vertical-align: middle; text-align: center;'>$title</span>";
     if ($collapsible) {
-      $icon = ($collapsed)? 'ui-icon-circle-triangle-s': 'ui-icon-circle-triangle-e';
-      $output .= "<span class='ui-icon $icon' style='float: right; vertical-align: middle; margin: 0.5em 0.3em; cursor: pointer;'>";
-      $output .= $name;
-      $output .= '</span>';
+      $icon = ($collapsed)? 'ui-icon-circle-triangle-e': 'ui-icon-circle-triangle-s';
+      $output .= "<span class='expand-tabpanel-icon ui-icon $icon' style='float: right; vertical-align: middle; margin-left:0.2em;'></span>";
     }
+    $output .= '</a>';
     $output .= '</li>';
     foreach ($form as $key => $panel) {
       if (is_numeric($key) && $key > 0) {
@@ -99,7 +99,7 @@ class TabPanel {
     $path = $form['#parents'];
     array_walk($path, array($this, 'stringifyPath'));
     $path = implode('', $path);
-    $this->createAddTabButton($form['content'], $path, $wrapper);
+    $this->createAddTabButton($form, $path, $wrapper);
     $this->createRemoveTabButtons($form['content'], $path, $wrapper);
     return $form;
   }
@@ -132,7 +132,8 @@ class TabPanel {
     $content['#collapsed'] = $form['#collapsed'];
   }
 
-  private function createAddTabButton(&$content, $path, $wrapper) {
+  private function createAddTabButton(&$form, $path, $wrapper) {
+    $content = &$form['content'];
     $content[0]['add-tab'] = array(
       '#type' => 'submit',
       '#weight' => 4,
@@ -146,6 +147,20 @@ class TabPanel {
         'effect' => 'fade'
       )
     );
+    // Actual buttons
+    $id = $form['#id'] . '-content-0-add-tab';
+    foreach ($content as $key => &$panel) {
+      if (is_numeric($key)) {
+        $panel[] = array(
+          '#type' => 'button',
+          '#button_type' => 'button',
+          '#attributes' => array('onclick' => "return formbuilder.tabpanel.addTab('$id');", 'class' => 'action-add-tab'),
+          '#weight' => 4,
+          '#size' => 30,
+          '#value' => "Add",
+        );
+      }
+    }
   }
 
   private function createRemoveTabButtons(&$content, $path, $wrapper) {

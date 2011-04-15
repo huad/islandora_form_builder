@@ -3,7 +3,7 @@ formbuilder = {
         tabs: null, // Collection of all tabpanels.
         collapsibleTabs: null,
         nonCollapsibleTabs: null,
-        loadPanels: function () {
+        loadPanels: function (collapse) {
             var load = '.action-load-tabpanel';
             var collapsible = '.property-collapsible-tabpanel';
             var collapsed = '.property-collapsed-tabpanel';
@@ -12,40 +12,59 @@ formbuilder = {
             this.nonCollapsibleTabs = this.tabs.not(collapsible);
             var expandedTabs = this.collapsibleTabs.not(collapsed);
             var collapsedTabs = this.collapsibleTabs.filter(collapsed);
-            collapsedTabs.tabs( { selected: -1 });
-            expandedTabs.tabs( { collapsible: true });
+            collapsedTabs.tabs({
+                collapsible: true,
+                selected: collapse ? -1 : undefined,
+                select: this.setCollapsibleIconOnSelect,
+                create: this.setCollapsibleIconOnCreate
+                });
+            expandedTabs.tabs({
+                collapsible: true,
+                select: this.setCollapsibleIconOnSelect,
+                create: this.setCollapsibleIconOnCreate
+            });
             this.nonCollapsibleTabs.tabs({});
         },
+        setCollapsibleIconOnSelect: function(event, ui) {
+            var icon = $('span.expand-tabpanel-icon:first', this);
+            if($(ui.panel).hasClass('ui-tabs-hide')) {
+                icon.removeClass('ui-icon-circle-triangle-e');
+                icon.addClass('ui-icon-circle-triangle-s');
+            }
+            else {
+                icon.removeClass('ui-icon-circle-triangle-s');
+                icon.addClass('ui-icon-circle-triangle-e');
+            }
+        },
+        setCollapsibleIconOnCreate: function(event, ui) {
+            var icon = $('span.expand-tabpanel-icon:first', this);
+            if($('div.ui-tabs-panel:not(.ui-tabs-hide)', this).length > 0) {
+                icon.removeClass('ui-icon-circle-triangle-e');
+                icon.addClass('ui-icon-circle-triangle-s');
+            }
+            else {
+                icon.removeClass('ui-icon-circle-triangle-s');
+                icon.addClass('ui-icon-circle-triangle-e');
+            }
+        },
         enableActions: function () {
-            $(".ui-icon-circle-triangle-e").live("click", function() {
-                var tabPanel = $(this).parents('div.ui-tabs:first');
-                $(this).removeClass('ui-icon-circle-triangle-e');
-                $(this).addClass('ui-icon-circle-triangle-s');
-                $("div.ui-tabs-panel", tabPanel).addClass("ui-tabs-hide");
-            });
-            $(".ui-icon-circle-triangle-s").live("click", function() {
-                var links = $(this).parents('ul:first');
-                var activeTab = $('li.ui-state-active:first', links).get(0);
-                var index = $('li', links).index(activeTab);
-                var tabPanel = $(this).parents('div.ui-tabs:first');
-                $('div.ui-tabs-panel:eq('+index+')', tabPanel).removeClass('ui-tabs-hide');
-                $(this).removeClass('ui-icon-circle-triangle-s');
-                $(this).addClass('ui-icon-circle-triangle-e');
-            });
             $(".ui-icon-close").live("click", function() {
                 var id = $(this).text();
                 $("#"+id).trigger("mousedown");
             });
-            // TODO find Add button and Remove Button...
+        },
+        addTab: function(id) {
+            $('#' + id).trigger("mousedown");
+            return false;
         }
     } 
 };
 
 $(document).ready(function() {
-    formbuilder.tabpanel.loadPanels();
+    formbuilder.tabpanel.loadPanels(true);
     formbuilder.tabpanel.enableActions();
     $("body").ajaxComplete(function(event, request, settings) {
-        formbuilder.tabpanel.loadPanels();
+        formbuilder.tabpanel.loadPanels(false);
         var response = eval("(" + request.responseText + ")");
         jQuery.extend(Drupal.settings, response.settings);
         Drupal.attachBehaviors();
