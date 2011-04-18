@@ -95,6 +95,12 @@ class ADRBasicEditFormBuilder implements FormBuilderInterface {
     $form[FORM_ROOT] = $form_generator->generate($this->formName);
     $form_populator = new FormPopulator($this->formState, $this->pid, $this->dsid, $this->formName);
     $form_populator->populate($form[FORM_ROOT]);
+    $form['cancel'] = array(
+      '#type' => 'button',
+      '#button_type' => 'button',
+      '#attributes' => array('onclick'=> "history.back(); return false;"),
+      '#value' => 'Cancel'
+    );
     $form['submit'] = array(
       '#type' => 'submit',
       '#submit' => array('islandora_form_builder_ingest_edit_form_submit'),

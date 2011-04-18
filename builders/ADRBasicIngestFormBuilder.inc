@@ -129,6 +129,12 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
     );
     $form_generator = FormGenerator::CreateFromModel($this->contentModelPid, $this->contentModelDsid);
     $form[FORM_ROOT] = $form_generator->generate($this->formName); // TODO get from user .
+    $form['cancel'] = array(
+      '#type' => 'button',
+      '#button_type' => 'button',
+      '#attributes' => array('onclick'=> "history.back(); return false;"),
+      '#value' => 'Cancel'
+    );
     $form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Ingest'),
