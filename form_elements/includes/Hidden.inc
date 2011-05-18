@@ -32,4 +32,21 @@ class Hidden {
     }
   }
 
+  /**
+   *
+   * @param array $form
+   * @param array $form_state 
+   */
+  public function process(&$form, &$form_state) {
+    if (isset($form['#form_builder']) && isset($form['content']) && empty($form['content'][0]['#form_builder'])) {
+      $form['content'][0]['#form_builder'] = $form['#form_builder'];
+    }
+    return $form;
+  }
+
+}
+
+function islandora_form_builder_elements_process_hidden(&$form, $edit, &$form_state) {
+  $hidden = new Hidden();
+  return $hidden->process($form, $form_state);
 }

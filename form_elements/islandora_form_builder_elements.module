@@ -51,6 +51,9 @@ function islandora_form_builder_elements_elements() {
     '#collapsed' => TRUE,
     '#process' => array('islandora_form_builder_elements_process_tabpanel'),
   );
+  $hidden = _element_info('hidden');
+  $hidden['#process'] = array_merge($hidden['#process'], array('islandora_form_builder_elements_process_hidden'));
+  $type['hidden'] = $hidden;
   $type['multifile'] = array(
     '#input' => TRUE,
     '#maxnumber' => '',
