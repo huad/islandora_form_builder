@@ -172,17 +172,12 @@ class FoxmlDocument extends DOMDocument {
   private function getFileAttributes($file) {
     global $base_url;
     module_load_include('inc', 'fedora_repository', 'MimeClass');
+    module_load_include('inc', 'fedora_repository', 'api/fedora_utils');
     $mime = new MimeClass();
     $mime_type = $mime->getType($file);
-    $parts = explode('/', $file);
-    foreach ($parts as $n => $part) {
-      $parts[$n] = rawurlencode($part);
-    }
-    $path = implode('/', $parts);
-    $file_url = $base_url . '/' . $path;
-    $beginIndex = strrpos($file_url, '/');
-    $dtitle = substr($file_url, $beginIndex + 1);
-    $dtitle = urldecode($dtitle);
+    $file_url = islandora_create_url($file, $mime_type);
+    $beginIndex = strrpos($file, '/');
+    $dtitle = substr($file, $beginIndex + 1);
     return array($dtitle, $mime_type, $file_url);
   }
 

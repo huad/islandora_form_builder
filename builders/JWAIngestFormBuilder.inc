@@ -153,12 +153,14 @@ class JWAIngestFormBuilder implements FormBuilderInterface {
 
       $files = multifile_array_mangler($_FILES, 'ingest-file-location');
       $form_values['ingest-file-location'] = array();
+      //drupal_set_message('<pre>' . print_r($files,TRUE) . '</pre>');
       $filetmp = $_FILES;
       foreach( $files as $key => $file ) {
         $_FILES = $file;
         $file_object = file_save_upload('ingest-file-location'.$key);
+        //drupal_set_message('<pre>' . print_r($file_object,TRUE) . '</pre>');
         file_move($file_object->filepath, 0, 'FILE_EXISTS_RENAME');
-        $form_values['ingest-file-location']['original'.$key] = $file_object->filepath;
+        $form_values['ingest-file-location']['MP3'.$key] = $file_object->filepath;
       }
       $_FILES = $filetmp;
 
@@ -213,15 +215,6 @@ class JWAIngestFormBuilder implements FormBuilderInterface {
         $ingest_file_location = isset($this->formState['values']['ingest-file-location']) ? $this->formState['values']['ingest-file-location'] : NULL;
         $document = new $class($form, $this->formState);
         
-        #create one MP3 file
-        $command = 'mp3wrap /home/web/drupal_files/jwa.org/all_MP3WRAP.mp3 ';
-        foreach ($ingest_file_location as $file) {
-          $command .= $file . ' ';
-        }
-        exec($command);
-
-        $ingest_file_location['MP3'] = '/home/web/drupal_files/jwa.org/all_MP3WRAP.mp3';
-
         $transform = drupal_get_path('module', 'islandora_form_builder') . '/transforms/mods_to_dc.xsl';
         $foxml = new FoxmlDocument($label, $pid, $dsid, $this->contentModelPid, $this->collectionPid, $relationship, $ingest_file_location, $document, $transform);
         $error = $foxml->ingest();
