@@ -153,7 +153,7 @@ class TabPanel {
       if (is_numeric($key)) {
         $panel[] = array(
           '#type' => 'markup',
-          '#value' => "<input type='button' value='Add' onclick='return formbuilder.tabpanel.addTab('$id');' class='action-add-tab'>",
+          '#value' => "<input type='button' value='Add' onclick='return formbuilder.tabpanel.addTab(\"$id\");' class='action-add-tab'>",
         );
       }
     }
