@@ -133,7 +133,7 @@ Joost Elfering
                 for (var i = 0; i < items.length; i++) {
                     var trimmedItem = jQuery.trim(items[i]);
                     if (trimmedItem.length > 0) {
-                        var hash = hashes[i];
+                        var hash = hashes ? hashes[i] : null;
                         addTag(trimmedItem, hash);
                     }
                 }
