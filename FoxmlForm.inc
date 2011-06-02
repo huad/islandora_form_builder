@@ -48,7 +48,7 @@ class FoxmlDocument extends DOMDocument {
    * @param <type> $ingest_file_location
    * @param <type> $document 
    */
-  public function __construct($label, $pid, $dsid, $content_model_pid, $collection_pid, $relationship, $ingest_file_locations, $document, $transform, $state = 'A' ) {
+  public function __construct($label, $pid, $dsid, $content_model_pid, $collection_pid, $relationship, $ingest_file_locations, $document, $transform, $state = 'A') {
     global $user;
     parent::__construct("1.0", "UTF-8"); // DomDocument
     $this->formatOutput = TRUE;
@@ -159,11 +159,11 @@ class FoxmlDocument extends DOMDocument {
     if (empty($this->ingestFileLocations))
       return;
 
-    foreach($this->ingestFileLocations as $dsid => $file) {
+    foreach ($this->ingestFileLocations as $dsid => $file) {
       $dsid = fixDsid($dsid);
       list($label, $mime_type, $file_url) = $this->getFileAttributes($file);
       $datastream = $this->createDatastreamElement($dsid, 'A', 'M');
-      $version = $this->createDatastreamVersionElement($dsid.'.0', $label, $mime_type);
+      $version = $this->createDatastreamVersionElement($dsid . '.0', $label, $mime_type);
       $content = $this->createDatastreamContentLocationElement('URL', $file_url);
       $this->root->appendChild($datastream)->appendChild($version)->appendChild($content);
     }
@@ -340,7 +340,7 @@ class FoxmlDocument extends DOMDocument {
     // Once again god damn you libxml...
     $class = get_class($this->document);
     $namespaces = call_user_func(array($class, 'getRequiredNamespaces'));
-    foreach($namespaces as $prefix => $uri) {
+    foreach ($namespaces as $prefix => $uri) {
       $node->setAttributeNS(self::xmlns, "xmlns:$prefix", $uri);
     }
   }
@@ -386,13 +386,16 @@ class FoxmlDocument extends DOMDocument {
         drupal_set_message(t("Item !pid created successfully.", array('!pid' => l($object->pid, 'fedora/repository/' . $object->pid))), "status");
         $ret = TRUE;
       }
-      foreach( $this->ingestFileLocations as $file )
-        file_delete($file);
+      if (is_array($this->ingestFileLocations)) {
+        foreach ($this->ingestFileLocations as $file) {
+          file_delete($file);
+        }
+      }
     } catch (exception $exception) {
       drupal_set_message(t('Error ingesting object: !e', array('!e' => $exception->getMessage())), 'error');
       watchdog(t("Fedora_Repository"), t("Error ingesting object: !e", array('!e' => $exception->getMessage())), NULL, WATCHDOG_ERROR);
       // TODO is this necessary?
-      foreach( $this->ingestFileLocations as $file )
+      foreach ($this->ingestFileLocations as $file)
         file_delete($file);
     }
     return $ret;

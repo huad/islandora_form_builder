@@ -157,7 +157,7 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
    */
   public function validateForm(&$form) {
     $form_values = &$this->formState['values'];
-    if (!empty($_FILES['ingest-file-location'])) {
+    if (!empty($_FILES['ingest-file-location']) && $_FILES['ingest-file-location']['error'][0] == 0) {
       module_load_include('inc', 'islandora_form_builder_elements', 'includes/MultiFile');
       module_load_include('inc', 'fedora_repository', 'ContentModel');
       module_load_include('inc', 'fedora_repository', 'MimeClass');
