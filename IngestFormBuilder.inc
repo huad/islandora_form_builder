@@ -259,6 +259,7 @@ class IngestFormBuilder implements FormBuilderInterface {
     $this->storage['form_name'] = $form_values['forms'];
     $this->page++;
     $this->formState['rebuild'] = TRUE;
+    $form['#redirect'] = "formbuilder/ingest/$this->collectionPid";
   }
 
   /**

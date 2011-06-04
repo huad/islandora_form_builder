@@ -167,6 +167,17 @@ class FoxmlDocument extends DOMDocument {
       $content = $this->createDatastreamContentLocationElement('URL', $file_url);
       $this->root->appendChild($datastream)->appendChild($version)->appendChild($content);
     }
+    
+    if (!empty($_SESSION['fedora_ingest_files'])) {
+      foreach ($_SESSION['fedora_ingest_files'] as $dsid => $created_file) {
+        list($label, $mime_type, $file_url) = $this->getFileAttributes($created_file);
+        $datastream = $this->createDatastreamElement($dsid, 'A', 'M');
+        $version = $this->createDatastreamVersionElement("$dsid.0", $label, $mime_type);
+        $content = $this->createDatastreamContentLocationElement('URL', $file_url);
+        $this->root->appendChild($datastream)->appendChild($version)->appendChild($content);
+      }
+    }
+
   }
 
   private function getFileAttributes($file) {
@@ -379,8 +390,14 @@ class FoxmlDocument extends DOMDocument {
         drupal_set_message(t("Item !pid created successfully.", array('!pid' => l($object->pid, 'fedora/repository/' . $object->pid))), "status");
         $ret = TRUE;
       }
-      foreach( $this->ingestFileLocations as $file )
+      foreach($this->ingestFileLocations as $file) {
         file_delete($file);
+      }
+      if (!empty($_SESSION['fedora_ingest_files'])) {
+        foreach ($_SESSION['fedora_ingest_files'] as $dsid => $created_file) {
+          file_delete($created_file);
+        }
+      }
     } catch (exception $exception) {
       drupal_set_message(t('Error ingesting object: !e', array('!e' => $exception->getMessage())), 'error');
       watchdog(t("Fedora_Repository"), t("Error ingesting object: !e", array('!e' => $exception->getMessage())), NULL, WATCHDOG_ERROR);

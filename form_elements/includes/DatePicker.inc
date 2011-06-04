@@ -36,7 +36,7 @@ function theme_datepicker($element) {
   $output = '<script type="text/javascript">' . $js . '</script>';
   $output.='<div class="container-inline mark">';
 
-  if ($element['#autocomplete_path'] && menu_valid_path(array('link_path' => $element['#autocomplete_path']))) {
+  if (array_key_exists('#autocomplete_path',$element) && menu_valid_path(array('link_path' => $element['#autocomplete_path']))) {
     drupal_add_js('misc/autocomplete.js');
     $class[] = 'form-autocomplete';
     $extra = '<input class="autocomplete" type="hidden" id="' . $element['#id'] . '-autocomplete" value="' . check_url(url($element['#autocomplete_path'], array('absolute' => TRUE))) . '" disabled="disabled" />';

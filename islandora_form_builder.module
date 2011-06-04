@@ -78,7 +78,7 @@ function islandora_form_builder_ingest_form_validate(&$form, &$form_state) {
    * Only validate the form if the submit button was pressed
    * (other buttons may be used for AHAH)
    */
-  if ($form_state['clicked_button']['#id'] != 'edit-submit')
+  if (strpos($form_state['clicked_button']['#id'],'edit-submit') === FALSE)
     return;
   module_load_include('inc', 'islandora_form_builder', 'IngestFormBuilder');
   $ingest_form_builder = new IngestFormBuilder($form_state);

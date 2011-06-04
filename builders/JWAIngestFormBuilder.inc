@@ -145,6 +145,8 @@ class JWAIngestFormBuilder implements FormBuilderInterface {
    *   Drupal form to be validated.
    */
   public function validateForm(&$form) {
+    global $base_url;
+    
     $form_values = &$this->formState['values'];
     if (!empty($_FILES['ingest-file-location'])) {
       module_load_include('inc', 'islandora_form_builder_elements', 'includes/MultiFile');
@@ -160,37 +162,96 @@ class JWAIngestFormBuilder implements FormBuilderInterface {
         $file_object = file_save_upload('ingest-file-location'.$key);
         //drupal_set_message('<pre>' . print_r($file_object,TRUE) . '</pre>');
         file_move($file_object->filepath, 0, 'FILE_EXISTS_RENAME');
-        $form_values['ingest-file-location']['MP3'.$key] = $file_object->filepath;
+        # If there is an image, its a thumbnail. Thumbnail it.
+        if(preg_match('/^image/',$file_object->filemime)) {
+          module_load_include('inc', 'fedora_repository', 'plugins/ImageManipulation');
+          $image = new ImageManipulation();
+          $image->createPreview(array('width' => 150, 'height' => 200), 'TN', $file_object->filepath, 'jpg');
+          $form_values['ingest-file-location']['TN-full'] = $file_object->filepath;
+        }
+        else {
+          $form_values['ingest-file-location'][$file_object->filename] = $file_object->filepath;
+        }
       }
+
+
       $_FILES = $filetmp;
 
-      foreach($form_values['ingest-file-location'] as $file) {
-        $content_model = ContentModel::loadFromModel($this->contentModelPid, $this->contentModelDsid);
-        if ($content_model !== FALSE) {
-          $allowed_mime_types = $content_model->getMimetypes();
-          $mime = new MimeClass();
-          $mime_type = $mime->getType($file);
-          if (!in_array($mime_type, $allowed_mime_types)) {
-            $error = t("The uploaded file's mimetype ($mime_type) is not " .
-                "associated with this Content Model. The allowed types are " .
-                implode(' ', $allowed_mime_types));
-            form_set_error('ingest-file-location', $error);
-            foreach($form_values['ingest-file-location'] as $file)
-              file_delete($file);
-            return;
-          }
-          else if (!$content_model->execIngestRules($file, $mime_type)) {
-            drupal_set_message(t('Error following Content Model Rules'), 'error');
-            foreach (ContentModel::$errors as $error)
-              drupal_set_message($error, 'error');
-            foreach($form_values['ingest-file-location'] as $file)
-              file_delete($file);
+      foreach($form_values['ingest-file-location'] as $key => $file) {
+        if($key != 'TN-full') {
+          $content_model = ContentModel::loadFromModel($this->contentModelPid, $this->contentModelDsid);
+          if ($content_model !== FALSE) {
+            $allowed_mime_types = $content_model->getMimetypes();
+            $mime = new MimeClass();
+            $mime_type = $mime->getType($file);
+            if (!in_array($mime_type, $allowed_mime_types)) {
+              $error = t("The uploaded file's mimetype ($mime_type) is not " .
+                  "associated with this Content Model. The allowed types are " .
+                  implode(' ', $allowed_mime_types));
+              form_set_error('ingest-file-location', $error);
+              foreach($form_values['ingest-file-location'] as $file)
+                file_delete($file);
+              return;
+            }
+            else if (!$content_model->execIngestRules($file, $mime_type)) {
+              drupal_set_message(t('Error following Content Model Rules'), 'error');
+              foreach (ContentModel::$errors as $error)
+                drupal_set_message($error, 'error');
+              foreach($form_values['ingest-file-location'] as $file)
+                file_delete($file);
+            }
           }
         }
       }
     }
     $this->formState['rebuild'] = FALSE;
     return;
+  }
+
+
+  private function createPlaylist($files, $pid) {
+    module_load_include('inc', 'fedora_repository', 'api/fedora_utils');
+    $playlist  = new DOMDocument('1.0', 'utf-8');
+    $playlist->formatOutput = true;
+
+    $rss = $playlist->createElement('rss');
+    $playlist->appendChild($rss);
+    $rss->setAttribute('version','2.0');
+    $rss->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:jwplayer', 'http://developer.longtailvideo.com/trac/');
+
+    $iterator = 1;
+
+    global $base_url;
+    $image = $base_url . '/fedora/repository/' . $pid . '/TN';
+
+    $channel = $playlist->createElement('channel');
+    $title_dom = $playlist->createElement('title','Playlist');
+    $rss->appendChild($channel);
+    $channel->appendChild($title_dom);
+
+    foreach ($files as $dsid => $filename) {
+      if($dsid != 'TN-full')
+      {
+        $title = 'Part ' . $iterator;
+        $file = $base_url . '/fedora/repository/' . $pid . '/' . fixDsid($dsid);
+
+        $item_dom = $playlist->createElement('item');
+        $title_dom = $playlist->createElement('title',$title);
+        $file_dom = $playlist->createElement('jwplayer:file', $file);
+        $image_dom = $playlist->createElement('jwplayer:image', $image);
+        $playlist_dom = $playlist->createElement('jwplayer:playlist.image', 'None');
+
+        $item_dom->appendChild($title_dom);
+        $item_dom->appendChild($file_dom);
+        $item_dom->appendChild($image_dom);
+        $item_dom->appendChild($playlist_dom);
+
+        $channel->appendChild($item_dom);
+        $iterator++;
+      }
+    }
+
+    return $playlist->saveXML();
   }
 
   /**
@@ -200,6 +261,7 @@ class JWAIngestFormBuilder implements FormBuilderInterface {
    */
   public function submitForm(&$form) {
     module_load_include('inc', 'fedora_repository', 'CollectionPolicy');
+    module_load_include('inc', 'fedora_repository', 'api/fedora_item');
     $error = TRUE;
     $should_redirect = TRUE;
     $collection_policy = CollectionPolicy::loadFromCollection($this->collectionPid);
@@ -218,13 +280,22 @@ class JWAIngestFormBuilder implements FormBuilderInterface {
         $transform = drupal_get_path('module', 'islandora_form_builder') . '/transforms/mods_to_dc.xsl';
         $foxml = new FoxmlDocument($label, $pid, $dsid, $this->contentModelPid, $this->collectionPid, $relationship, $ingest_file_location, $document, $transform);
         $error = $foxml->ingest();
+
+        $object = new Fedora_Item($pid);
+        if(empty($_SESSION['fedora_ingest_files']) || !array_key_exists('TN',$_SESSION['fedora_ingest_files']))
+        {
+          $tn_path = drupal_get_path('module', 'islandora_jwa_module') . '/images/TN.png';
+          $object->add_datastream_from_file($tn_path, 'TN', 'thumbnail');
+        }
+        $playlist = $this->createPlaylist($this->formState['values']['ingest-file-location'],$pid);
+        $object->add_datastream_from_string($playlist, 'PLAYLIST');
         $_SESSION['fedora_ingest_files'] = ''; //empty this variable
         $this->formState['storage'] = NULL;
       }
     }
     if ($should_redirect) {
       global $base_url;
-      $this->formState['redirect'] = ($error) ? '' : $base_url . "/fedora/repository/{$this->collectionPid}";
+      $form['#redirect'] = "{$base_url}/fedora/repository/{$this->collectionPid}";
     }
   }
 
