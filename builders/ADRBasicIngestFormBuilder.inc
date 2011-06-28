@@ -158,6 +158,11 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
   public function validateForm(&$form) {
     $form_values = &$this->formState['values'];
     if (!empty($_FILES['ingest-file-location']) && $_FILES['ingest-file-location']['error'][0] == 0) {
+      $errors = form_get_errors();
+      if(isset($errors)) {
+        drupal_set_message("Remember to reattach your files.", 'error');
+      }
+      
       module_load_include('inc', 'islandora_form_builder_elements', 'includes/MultiFile');
       module_load_include('inc', 'fedora_repository', 'ContentModel');
       module_load_include('inc', 'fedora_repository', 'MimeClass');
@@ -198,7 +203,7 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
         }
       }
     }
-    $this->formState['rebuild'] = FALSE;
+    $this->formState['rebuild'] = TRUE;
     return;
   }
 
