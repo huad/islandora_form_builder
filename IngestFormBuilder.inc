@@ -232,7 +232,7 @@ class IngestFormBuilder implements FormBuilderInterface {
    *
    */
   private function getFormPageTwo() {
-    $form = &$this->createIngestFormClass();
+    $form = $this->createIngestFormClass();
     return $form->createForm();
   }
 
@@ -267,7 +267,7 @@ class IngestFormBuilder implements FormBuilderInterface {
    *   Drupal form to be validated.
    */
   private function validateFormTwo(&$form) {
-    $class = &$this->createIngestFormClass();
+    $class = $this->createIngestFormClass();
     return $class->validateForm($form);
   }
 
@@ -277,11 +277,11 @@ class IngestFormBuilder implements FormBuilderInterface {
    *  $form
    */
   public function submitForm(&$form) {
-    $class = &$this->createIngestFormClass();
+    $class = $this->createIngestFormClass();
     return $class->submitForm($form);
   }
 
-  private function &createIngestFormClass() {
+  private function createIngestFormClass() {
     module_load_include('inc', 'fedora_repository', 'ContentModel');
     $content_model = ContentModel::loadFromModel($this->contentModelPid, $this->contentModelDsid);
     $form_element = $content_model->getForm($this->formName);

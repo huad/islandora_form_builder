@@ -203,7 +203,6 @@ class ADRBasicIngestFormBuilder implements FormBuilderInterface {
         }
       }
     }
-    $this->formState['rebuild'] = TRUE;
     return;
   }
 

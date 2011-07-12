@@ -37,73 +37,88 @@ function islandora_form_builder_menu() {
 
 /**
  *
- * @param <type> $collection_pid
- * @param <type> $collection_label
- * @param <type> $content_model
- * @return <type> 
+ * @param string $collection_pid
+ * @param string $collection_label
+ * @return array
  */
 function islandora_form_builder_ingest($collection_pid = NULL, $collection_label = NULL) {
-  if ($collection_pid == NULL) {
-    $collection_pid = variable_get('fedora_repository_pid', 'islandora:top');
-  }
-  $collection_pid = islandora_form_builder_validate_url_argument_collection_pid($collection_pid);
-  if ($collection_pid !== FALSE) {
-    islandora_form_builder_set_bread_crumbs($collection_pid);
-    return drupal_get_form('islandora_form_builder_ingest_form', $collection_pid, $collection_label);
-  }
-  else {
-    drupal_not_found();
+  try {
+    if ($collection_pid == NULL) {
+      $collection_pid = variable_get('fedora_repository_pid', 'islandora:top');
+    }
+    $collection_pid = islandora_form_builder_validate_url_argument_collection_pid($collection_pid);
+    if ($collection_pid !== FALSE) {
+      islandora_form_builder_set_bread_crumbs($collection_pid);
+      return drupal_get_form('islandora_form_builder_ingest_form', $collection_pid, $collection_label);
+    }
+    else {
+      drupal_not_found();
+    }
+  } catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
   }
 }
 
 /**
  *
- * @param <type> $form_state
- * @param <type> $collection_pid
- * @param <type> $collection_label
- * @return <type>
+ * @param array $form_state
+ * @param string $collection_pid
+ * @param string $collection_label
+ * @return array
  */
 function islandora_form_builder_ingest_form(&$form_state, $collection_pid, $collection_label = NULL) {
-  module_load_include('inc', 'islandora_form_builder', 'IngestFormBuilder');
-  $ingest_form_builder = new IngestFormBuilder($form_state, $collection_pid, $collection_label);
-  $form = $ingest_form_builder->createForm();
-  return $form;
+  try {
+    module_load_include('inc', 'islandora_form_builder', 'IngestFormBuilder');
+    $ingest_form_builder = new IngestFormBuilder($form_state, $collection_pid, $collection_label);
+    $form = $ingest_form_builder->createForm();
+    return $form;
+  } catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+    return array();
+  }
 }
 
 /**
  *
- * @param <type> $form
- * @param <type> $form_state
- * @return <type> 
+ * @param array $form
+ * @param array $form_state
  */
 function islandora_form_builder_ingest_form_validate(&$form, &$form_state) {
-  /*
-   * Only validate the form if the submit button was pressed
-   * (other buttons may be used for AHAH)
-   */
-  if ($form_state['clicked_button']['#id'] != 'edit-submit')
-    return;
-  module_load_include('inc', 'islandora_form_builder', 'IngestFormBuilder');
-  $ingest_form_builder = new IngestFormBuilder($form_state);
-  $ingest_form_builder->validateForm($form);
+  try {
+    /*
+     * Only validate the form if the submit button was pressed
+     * (other buttons may be used for AHAH)
+     */
+    if ($form_state['clicked_button']['#id'] != 'edit-submit')
+      return;
+    module_load_include('inc', 'islandora_form_builder', 'IngestFormBuilder');
+    $ingest_form_builder = new IngestFormBuilder($form_state);
+    $ingest_form_builder->validateForm($form);
+  } catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+  }
 }
 
 /**
  *
- * @param <type> $form
- * @param <type> $form_state
- * @return <type> 
+ * @param array $form
+ * @param array $form_state
+ * @return array
  */
 function islandora_form_builder_ingest_form_submit(&$form, &$form_state) {
-  /*
-   * Only submit the form if the submit button was pressed
-   * (other buttons may be used for AHAH)
-   */
-  if ($form_state['clicked_button']['#id'] != 'edit-submit')
-    return;
-  module_load_include('inc', 'islandora_form_builder', 'IngestFormBuilder');
-  $ingest_form_builder = new IngestFormBuilder($form_state);
-  $ingest_form_builder->submitForm($form);
+  try {
+    /*
+     * Only submit the form if the submit button was pressed
+     * (other buttons may be used for AHAH)
+     */
+    if ($form_state['clicked_button']['#id'] != 'edit-submit')
+      return;
+    module_load_include('inc', 'islandora_form_builder', 'IngestFormBuilder');
+    $ingest_form_builder = new IngestFormBuilder($form_state);
+    $ingest_form_builder->submitForm($form);
+  } catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+  }
 }
 
 /**
@@ -116,61 +131,76 @@ function islandora_form_builder_ingest_form_submit(&$form, &$form_state) {
  *   A drupal form, used to edit the object $pid and the datastream $dsid.
  */
 function islandora_form_builder_edit($pid = NULL, $form_name = NULL) {
-  if (islandora_form_builder_check_edit_form_arguments_and_permissions($pid, $form_name)) {
-    islandora_form_builder_set_bread_crumbs($pid);
-    return drupal_get_form('islandora_form_builder_edit_form', $pid, $form_name);
-  }
-  else {
-    drupal_not_found();
+  try {
+    if (islandora_form_builder_check_edit_form_arguments_and_permissions($pid, $form_name)) {
+      islandora_form_builder_set_bread_crumbs($pid);
+      return drupal_get_form('islandora_form_builder_edit_form', $pid, $form_name);
+    }
+    else {
+      drupal_not_found();
+    }
+  } catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
   }
 }
 
 /**
  *
- * @param <type> $form_state
- * @param <type> $pid
- * @param <type> $dsid
- * @return <type> 
+ * @param array $form_state
+ * @param string $pid
+ * @param string $dsid
+ * @return array 
  */
 function islandora_form_builder_edit_form(&$form_state, $pid, $form_name) {
-  module_load_include('inc', 'islandora_form_builder', 'EditFormBuilder');
-  $edit_form_builder = new EditFormBuilder($form_state, $pid, $form_name);
-  $form = $edit_form_builder->createForm();
-  return $form;
+  try {
+    module_load_include('inc', 'islandora_form_builder', 'EditFormBuilder');
+    $edit_form_builder = new EditFormBuilder($form_state, $pid, $form_name);
+    $form = $edit_form_builder->createForm();
+    return $form;
+  } catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+    return array();
+  }
 }
 
 /**
  *
- * @param <type> $form
- * @param <type> $form_state
- * @return <type>
+ * @param array $form
+ * @param array $form_state
  */
 function islandora_form_builder_ingest_edit_form_validate(&$form, &$form_state) {
-  /*
-   * Only validate the form if the submit button was pressed
-   * (other buttons may be used for AHAH)
-   */
-  if ($form_state['clicked_button']['#id'] != 'edit-submit')
-    return;
-  module_load_include('inc', 'islandora_form_builder', 'EditFormBuilder');
-  $edit_form_builder = new EditFormBuilder($form_state);
-  $edit_form_builder->validateForm($form);
+  try {
+    /*
+     * Only validate the form if the submit button was pressed
+     * (other buttons may be used for AHAH)
+     */
+    if ($form_state['clicked_button']['#id'] != 'edit-submit')
+      return;
+    module_load_include('inc', 'islandora_form_builder', 'EditFormBuilder');
+    $edit_form_builder = new EditFormBuilder($form_state);
+    $edit_form_builder->validateForm($form);
+  } catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+  }
 }
 
 /**
  *
- * @param <type> $form
- * @param <type> $form_state
- * @return <type>
+ * @param array $form
+ * @param array $form_state
  */
 function islandora_form_builder_ingest_edit_form_submit(&$form, &$form_state) {
-  /*
-   * Only submit the form if the submit button was pressed
-   * (other buttons may be used for AHAH)
-   */
-  if ($form_state['clicked_button']['#id'] != 'edit-submit')
-    return;
-  module_load_include('inc', 'islandora_form_builder', 'EditFormBuilder');
-  $edit_form_builder = new EditFormBuilder($form_state);
-  $edit_form_builder->submitForm($form);
+  try {
+    /*
+     * Only submit the form if the submit button was pressed
+     * (other buttons may be used for AHAH)
+     */
+    if ($form_state['clicked_button']['#id'] != 'edit-submit')
+      return;
+    module_load_include('inc', 'islandora_form_builder', 'EditFormBuilder');
+    $edit_form_builder = new EditFormBuilder($form_state);
+    $edit_form_builder->submitForm($form);
+  } catch (Exception $e) {
+    drupal_set_message($e->getMessage(), 'error');
+  }
 }
