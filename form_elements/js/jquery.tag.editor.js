@@ -73,15 +73,21 @@ Joost Elfering
                         return false;
                     }
                 }
-
+                
                 var item = jQuery(document.createElement('li'));
-                item.text(tag);
-                item.attr('title', 'Remove tag');
-                if (options.imageTag) {
-                    item.append('<img src="' + options.imageTagUrl + '">');
-                }
-
-                item.click(function() {
+                var label = jQuery(document.createElement('span'));
+                var icon = jQuery(document.createElement('span'));
+                item.append(label.text(tag));
+                item.append(icon.attr('class', 'remove-tag'));
+                // Label
+                label.attr('title', 'Edit tag');
+                label.click(function() {
+                    var val = label.text();
+                    textBase.val(val);
+                });
+                // Icon
+                icon.attr('title', 'Remove tag');
+                icon.click(function() {
                     if (options.confirmRemoval) {
                         if (!confirm(options.confirmRemovalText)) {
                             return;
