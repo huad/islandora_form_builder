@@ -15,7 +15,13 @@ module_load_include('inc', 'islandora_form_builder_elements', 'Utilities');
  * Content Model.
  */
 class FormPopulator {
-
+  /**
+   * Constants
+   */
+  const mods = 'http://www.loc.gov/mods/v3';
+  const xlink = 'http://www.w3.org/1999/xlink';
+  const xsi = 'http://www.w3.org/2001/XMLSchema-instance';
+  const xmlns = 'http://www.w3.org/2000/xmlns/';
   /**
    * The fedora object to edit, datastreams from this item are used to populate the form.
    * 
@@ -98,8 +104,7 @@ class FormPopulator {
   }
 
   private static function getNodeXPath(&$node, &$default_prefix) {
-    $node->nodeName;
-    if($node->prefix == '' && get_class($node) != 'DOMAttr') {
+    if ($node->prefix == '' && get_class($node) != 'DOMAttr') {
       return "{$default_prefix}:{$node->nodeName}";
     }
     else {
@@ -137,7 +142,12 @@ class FormPopulator {
     $this->storage = &$this->formState['storage'][STORAGE_KEY];
     if (!isset($this->storage['xml'])) {
       $this->item = new fedora_item($pid);
-      $this->storage['xml'] = $this->item->get_datastream_dissemination($dsid);
+      // HACK
+      $xml = new DOMDocument();
+      $xml->loadXML($this->item->get_datastream_dissemination($dsid));
+      $xml->documentElement->setAttributeNS(self::xmlns, 'xmlns', self::mods); // HACK!!!!!!
+      $this->storage['xml'] = $xml->saveXML();
+      // End HACK
     }
   }
 
