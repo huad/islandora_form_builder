@@ -82,23 +82,23 @@ class ModsDocument extends XmlDatastreamFormDocument {
     switch ($version) {
       case '3.0':
         $root->setAttribute('version', '3.0');
-        $root->setAttributeNS(self::xsi, 'xsi:schemaLocation', self::mods . " http://www.loc.gov/standards/mods/v3/mods-3-0.xsd");
+        $root->setAttribute('xsi:schemaLocation', self::mods . " http://www.loc.gov/standards/mods/v3/mods-3-0.xsd");
         break;
       case '3.1':
         $root->setAttribute('version', '3.1');
-        $root->setAttributeNS(self::xsi, 'xsi:schemaLocation', self::mods . " http://www.loc.gov/standards/mods/v3/mods-3-1.xsd");
+        $root->setAttribute('xsi:schemaLocation', self::mods . " http://www.loc.gov/standards/mods/v3/mods-3-1.xsd");
         break;
       case '3.2':
         $root->setAttribute('version', '3.2');
-        $root->setAttributeNS(self::xsi, 'xsi:schemaLocation', self::mods . " http://www.loc.gov/standards/mods/v3/mods-3-2.xsd");
+        $root->setAttribute('xsi:schemaLocation', self::mods . " http://www.loc.gov/standards/mods/v3/mods-3-2.xsd");
         break;
       case '3.3':
         $root->setAttribute('version', '3.3');
-        $root->setAttributeNS(self::xsi, 'xsi:schemaLocation', self::mods . " http://www.loc.gov/standards/mods/v3/mods-3-3.xsd");
+        $root->setAttribute('xsi:schemaLocation', self::mods . " http://www.loc.gov/standards/mods/v3/mods-3-3.xsd");
         break;
       default:
         $root->setAttribute('version', '3.4');
-        $root->setAttributeNS(self::xsi,'xsi:schemaLocation', self::mods . " http://www.loc.gov/standards/mods/v3/mods-3-4.xsd");
+        $root->setAttribute('xsi:schemaLocation', self::mods . " http://www.loc.gov/standards/mods/v3/mods-3-4.xsd");
         break;
     }
   }

@@ -127,7 +127,7 @@ class FormPopulator {
     $this->xml = new DOMDocument();
     $this->xml->loadXML($this->storage['xml']);
     $this->xpath = new DOMXPath($this->xml);
-    $this->registerNamespaces($form_name);
+    $this->registerNamespaces($form_name, $pid);
     $this->allowedFormElements = islandora_form_builder_elements_get_allowed_form_elements();
   }
 
@@ -154,10 +154,11 @@ class FormPopulator {
   /**
    *
    * @param string $form_name
+   * @param string $pid
    */
-  private function registerNamespaces(&$form_name) {
+  private function registerNamespaces(&$form_name, $pid) {
     module_load_include('inc', 'fedora_repository', 'ContentModel');
-    $content_model = ContentModel::loadFromObject($this->item->pid);
+    $content_model = ContentModel::loadFromObject($pid);
     $form = $content_model->getForm($form_name);
     $module = $form->getAttribute('module');
     $file = $form->getAttribute('file');
