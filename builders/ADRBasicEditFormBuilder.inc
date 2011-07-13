@@ -194,7 +194,7 @@ class ADRBasicEditFormBuilder implements FormBuilderInterface {
    *   Data stream mime_type.
    */
   private function modifyManagedDatastream($dom, $dsid, $label, $mime_type) {
-    $temp_file_dir = file_directory_temp();
+    $temp_file_dir = file_directory_path();
     $temp_file_path = file_create_filename("modsdatastream.xml", $temp_file_dir);
     if ($dom->save($temp_file_path)) {
       $temp_file_url = file_create_url($temp_file_path);
