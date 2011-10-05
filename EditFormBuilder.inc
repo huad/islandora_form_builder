@@ -99,6 +99,8 @@ class EditFormBuilder implements FormBuilderInterface {
   private function &createEditFormBuilder() {
     module_load_include('inc', 'fedora_repository', 'ContentModel');
     $content_model = ContentModel::loadFromObject($this->pid);
+    //drupal_set_message('<pre>' . print_r($content_model, TRUE) . '</pre>');
+    //drupal_set_message($this->formName);
     $form_element = $content_model->getForm($this->formName);
     $module = $form_element->getAttribute('edit_module');
     $filename = $form_element->getAttribute('edit_file');

@@ -207,7 +207,7 @@ class ModsIngestFormBuilder implements FormBuilderInterface {
     }
     if ($should_redirect) {
       global $base_url;
-      $this->formState['redirect'] = ($error) ? '' : $base_url . "/fedora/repository/{$this->collectionPid}";
+      $this->formState['#redirect'] = ($error) ? '' : $base_url . "/fedora/repository/{$this->collectionPid}";
     }
   }
 
